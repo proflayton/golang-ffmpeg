@@ -7,7 +7,8 @@ RUN apk update \
 	&& apk add alpine-sdk \
 	&& apk add yasm \
 	&& apk add diffutils \
-	&& apk add perl
+	&& apk add perl \
+	&& apk add bash
 
 RUN git clone https://chromium.googlesource.com/webm/libvpx /root/libvpx && \
 	cd /root/libvpx && \
@@ -28,8 +29,13 @@ RUN cd /root && \
 	./configure --disable-shared && \
 	make -j8 && make install -j8
 
+RUN git clone --depth 1 https://git.videolan.org/git/x264 /root/x264 && \
+	cd /root/x264 && \
+	./configure --disable-asm --enable-static --enable-pic --disable-shared && \
+	make -j8 &&  make install -j8
+
 # Compile and install ffmpeg from source
 RUN git clone https://github.com/FFmpeg/FFmpeg /root/ffmpeg && \
     cd /root/ffmpeg && \
-    ./configure --enable-nonfree --enable-libvorbis --enable-libvpx --disable-shared --extra-cflags=-I/usr/local/include && \
+    ./configure --enable-nonfree --enable-gpl --enable-libvorbis --enable-libvpx --enable-libx264 --disable-shared --extra-cflags=-I/usr/local/include && \
     make -j8 && make install -j8
